@@ -1,0 +1,9 @@
+# RGB LED Controller
+### This is a technical doodles
+
+While playing around with RGB LEDs on my Arduino I started to find that delays()
+were popping up in methods outside of the main loop().  This was really apparent
+in code responsible for fading an LED or a specific color on an RGB.  I needed a way
+to manage these transitions without blocking outside of the loop.  That's where this
+doodle came in.  It's a small class to maintain the current and last state of the pin
+as well as calculate the future step.
