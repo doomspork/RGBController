@@ -1,5 +1,5 @@
 # RGB LED Controller
-### This is a technical doodles
+### This is a technical doodle
 
 While playing around with RGB LEDs on my Arduino I started to find that delays()
 were popping up in methods outside of the main loop().  This was really apparent
