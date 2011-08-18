@@ -1,9 +1,51 @@
 # RGB LED Controller
-### This is a technical doodles
+### This is part of my technical doodles series
 
-While playing around with RGB LEDs on my Arduino I started to find that delays()
-were popping up in methods outside of the main loop().  This was really apparent
-in code responsible for fading an LED or a specific color on an RGB.  I needed a way
+While playing around with RGB LEDs on my Arduino I started to find that `delays()`
+were popping up in methods outside of the main `loop()`.  This was really apparent
+in code responsible for fading specific color on an RGB; I decided I needed a way
 to manage these transitions without blocking outside of the loop.  That's where this
 doodle came in.  It's a small class to maintain the current and last state of the pin
-as well as calculate the future step.
+as well as calculating the next step.
+
+## Using the code
+
+### Inclusion and instantiation
+First you must include the library and then instantiate an instance of the class.  The
+class constructor can take two parameters: the minimum and maximum values allowed
+  
+  ``#include "RGBController.h"``  
+  ``RGBController control(0, 255)``
+
+### Configuration  
+The next necessary step is the configuration which commonly takes place within the `setup()` method.
+  
+  ``fader.configPin(RED, 3, FADE);
+fader.configPin(GREEN, 5, PULSE);
+fader.configPin(BLUE, 6, PULSE);``
+  
+Here we are calling the `configPin(int, int, callback)` method once for each pin.  The first parameter
+is an integer value that is used within the class to manage the RGB pins; it is preferable that you use the
+defined macros.  The second parameter is the Arduino pin that particular color is assigned to.  The last and final
+parameter is a callback method which calculates the next step in the RGB pattern.  You can define your own callbacks
+as well, that topic will be discussed further down.
+  
+I've defined a few macros to make like easier.  The first set are the colors: RED, GREEN, BLUE used within the class for identification.
+The second set: FADE and PULSE are shortcuts for the callback methods `fade()` and `pulse()` respectively.
+
+### Making pretty colors
+The last step necessary is typically found within the `loop()` method.
+  
+  ``fader.step(GREEN, 1);``
+  
+We've now instructed the controller to step the GREEN pin forward once.  The correct next value is calculated by our callbacks.
+By default steps increment by one so you can shorten the above code like this:
+
+  ``fader.step(GREEN);``
+
+Additionally, negative values are acceptable and typically step backwards in the pattern.  _This is not always true as callback
+methods are ultimately responsible for handling the next value and may choose to ignore negative values._
+
+## Callbacks
+
+Coming soon...

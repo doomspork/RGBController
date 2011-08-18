@@ -1,66 +1,45 @@
 #include "RGBController.h"
 
+/*
+  RGBController.cpp - Library managaging RGB LED patterns without delays()
+  Created by doomspork, August 15, 2011.
+  Released into the public domain.
+*/
+
 RGBController::RGBController(int min, int max) {
-  pins = (int *)malloc(ARRAY_MSIZE);
-  patterns = (int *)malloc(ARRAY_MSIZE);
-  minValue = min;
-  maxValue = max;
+  pins_ = (int *)malloc(sizeof(int) * 3) ;
+  patterns_ = (int *)malloc(sizeof(int) * 3);
+  callbacks_ = (callback *)malloc(sizeof(callback *) * 3);
+  BOUNDS b;
+  b.min = min;
+  b.max = max;
+  bounds_ = b;
   this->reset();
 }
 
 RGBController::~RGBController() {
-  free(pins);
-  free(patterns);
-  free(values);
-  free(lastValues);
+  free(pins_);
+  free(values_);
+  free(lastValues_);
+  free(callback_);
 }
 
 void RGBController::updatePin(int pin) {
-  analogWrite(pins[pin], values[pin]);
+  analogWrite(pins_[pin], values_[pin]);
 }
 
 int RGBController::nextStep(int pin, int steps) {
-  switch(this->patterns[pin]) {
-    case FADE:
-    return this->nextFadeStep(pin, steps);
-    case PULSE:
-    return this->nextPulseStep(pin, steps);
-  }
-  return -1; //error!
+  return callbacks_[pin](last, current, steps, bounds);
 }
 
-int RGBController::nextPulseStep(int pin, int steps) {
-  int current = this->values[pin];
-  int last = this->lastValues[pin];
-  int future;
-  if((current > last && current < maxValue) || current <= minValue) {
-    future = current + steps;
-  } else {
-    future = current - steps;
-  }
-  return future;
-}
-
-int RGBController::nextFadeStep(int pin, int steps) {
-  int current = this->values[pin];
-  int last = this->lastValues[pin];
-  int future;
-  if(current < maxValue) {
-    future = current + steps;
-  } else {
-    future = 0;
-  }
-  return future;  
-}
-
-void RGBController::configPin(int color, int pin, int pattern) {
-  this->pins[color] = pin;
-  this->patterns[color] = pattern;
+void RGBController::configPin(int color, int pin, callback func) {
+  this->pins_[color] = pin;
+  this->callbacks_[color] = func;
 }
 
 void RGBController::set(int pin, int value) {
-  lastValues[pin] = values[pin];
-  values[pin] = value;
+  lastValues_[pin] = values[pin];
+  values_[pin] = value;
   updatePin(pin);
 }
 
@@ -69,14 +48,33 @@ void RGBController::step(int pin, int steps) {
 }
 
 void RGBController::reset() {
-  free(this->values);
-  this->values = (int *)malloc(ARRAY_MSIZE);
-  this->values[0] = minValue;
-  this->values[1] = minValue;
-  this->values[2] = minValue;
-  free(this->lastValues);
-  this->lastValues = (int *)malloc(ARRAY_MSIZE);
-  this->lastValues[0] = minValue;
-  this->lastValues[1] = minValue;
-  this->lastValues[2] = minValue;
+  free(values_);
+  values_ = (int *)malloc(sizeof(int) * 3);
+  values_[0] = minValue;
+  values_[1] = minValue;
+  values_[2] = minValue;
+  free(lastValues_);
+  lastValues_ = (int *)malloc(sizeof(int) * 3);
+  lastValues_[0] = minValue;
+  lastValues_[1] = minValue;
+  lastValues_[2] = minValue;
+}
+
+int RGBController::fade(int last, int current, int steps, BOUNDS bound) {
+  int future;
+  if(current < maxValue) {
+    future = current + steps;
+  } else {
+    future = 0;
+  }
+}
+
+int RGBController::pulse(int last, int current, int steps, BOUNDS bound) {
+  int future;
+  if((current > last && current < bound.max) || current <= bound.min) {
+    future = current + steps;
+  } else {
+    future = current - steps;
+  }
+  return future;
 }
